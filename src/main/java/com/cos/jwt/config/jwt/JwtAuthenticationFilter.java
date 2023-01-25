@@ -3,7 +3,7 @@ package com.cos.jwt.config.jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.cos.jwt.config.auth.PrincipalDetails;
-import com.cos.jwt.model.JwtUser;
+import com.cos.jwt.model.Users;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Date;
@@ -46,7 +46,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         try {                 // 이 byte안에 username과 password가 담겨있다
             System.out.println(request.getInputStream().toString());
             ObjectMapper mapper = new ObjectMapper();
-            JwtUser user = mapper.readValue(request.getInputStream(), JwtUser.class);
+            Users user = mapper.readValue(request.getInputStream(), Users.class);
 
             // formLogin방식이 아니기 때문에 직접 토큰을 만들어 준다
             UsernamePasswordAuthenticationToken authenticationToken =

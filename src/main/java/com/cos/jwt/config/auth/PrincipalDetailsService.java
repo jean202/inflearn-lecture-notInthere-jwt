@@ -1,6 +1,6 @@
 package com.cos.jwt.config.auth;
 
-import com.cos.jwt.model.JwtUser;
+import com.cos.jwt.model.Users;
 import com.cos.jwt.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,7 +18,7 @@ public class PrincipalDetailsService implements UserDetailsService{
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         System.out.println("PrincipalDetailsService.loadUserByUsername");
-        JwtUser userEntity = userRepository.findByUsername(username);
+        Users userEntity = userRepository.findByUsername(username);
         return new PrincipalDetails(userEntity);
     }
 }

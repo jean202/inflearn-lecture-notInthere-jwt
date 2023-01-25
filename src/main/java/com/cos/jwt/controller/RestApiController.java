@@ -1,17 +1,19 @@
 package com.cos.jwt.controller;
 
-import com.cos.jwt.model.JwtUser;
+import com.cos.jwt.model.Users;
 import com.cos.jwt.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 //@CrossOrigin // 에렇게 cors정책 허용 어노테이션을 걸 수 도 있지만 이렇게 하게 되면 인증이 필요하지 않은 요청에만 적용됨
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("api/v1")
 public class RestApiController {
 
     private final UserRepository userRepository;
@@ -29,7 +31,7 @@ public class RestApiController {
     }
 
     @PostMapping("join")
-    public String join(@RequestBody JwtUser user) {
+    public String join(@RequestBody Users user) {
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         user.setRoles("ROLE_USER");
         userRepository.save(user);

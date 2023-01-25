@@ -1,9 +1,9 @@
 package com.cos.jwt.repository;
 
-import com.cos.jwt.model.JwtUser;
+import com.cos.jwt.model.Users;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserRepository extends JpaRepository<JwtUser, Long> {
+public interface UserRepository extends JpaRepository<Users, Long> {
 
-    public JwtUser findByUsername(String username);
+    public Users findByUsername(String username);
 }

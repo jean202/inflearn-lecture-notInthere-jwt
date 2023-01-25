@@ -4,7 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.cos.jwt.config.auth.PrincipalDetails;
 import com.cos.jwt.config.jwt.JwtProperties;
-import com.cos.jwt.model.JwtUser;
+import com.cos.jwt.model.Users;
 import com.cos.jwt.repository.UserRepository;
 import java.io.IOException;
 import javax.servlet.FilterChain;
@@ -59,7 +59,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter{
 
         // 서명이 정상적으로 확인되어 username안에 값이 들어오면
         if(username != null) {
-            JwtUser user = userRepository.findByUsername(username);
+            Users user = userRepository.findByUsername(username);
 
             // 인증은 토큰 검증시 끝. 인증을 하기 위해서가 아닌 스프링 시큐리티가 수행해주는 권한 처리를 위해
             // 아래와 같이 토큰을 만들어서 Authentication 객체를 강제로 만들고 그걸 세션에 저장!
