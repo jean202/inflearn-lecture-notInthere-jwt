@@ -1,0 +1,46 @@
+### home api
+GET http://localhost:8080/home
+Accept: text/plain
+
+### token api
+POST http://localhost:8080/token
+Accept: text/plain
+Authorization: test
+
+### join api
+# curl --location --request POST 'http://localhost:8080/join'
+#--header 'Content-Type: application/json'
+#--data-raw '{
+#    "username": "jean202",
+#    "password": "1234"
+#}'
+POST http://localhost:8080/join
+Accept: application/json
+Content-Type: application/json
+
+{
+  "username": "jean202",
+  "password": "1234"
+}
+
+### login api
+POST localhost:8080/login
+Accept: application/json
+Content-Type: application/json
+
+{
+  "username" : "jean",
+  "password" : "1234"
+}
+
+### user api
+GET localhost:8080/api/v1/user
+Accept: application/json
+
+### manager api
+GET localhost:8080/api/v1/manager
+Accept: application/json
+
+### admin api
+GET localhost:8080/api/v1/admin
+Accept: application/json
