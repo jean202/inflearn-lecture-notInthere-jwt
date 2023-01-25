@@ -1,10 +1,9 @@
-package com.cos.jwt.config;
+package com.cos.jwt.config.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.cos.jwt.config.auth.PrincipalDetails;
-import com.cos.jwt.config.jwt.JwtProperties;
-import com.cos.jwt.model.JwtUser;
+import com.cos.jwt.model.Users;
 import com.cos.jwt.repository.UserRepository;
 import java.io.IOException;
 import javax.servlet.FilterChain;
@@ -33,10 +32,8 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter{
         throws IOException, ServletException {
         System.out.println("인증이나 권한이 필요한 주소값의 요청입니다.");
         String header = request.getHeader(JwtProperties.HEADER_STRING);
-        System.out.println("header : "+header);
 
         // JWT를 검증해서 정상적인 사용자인지 확인
-
         // 1. Bearer 달고있는 header가 있는지 확인
         if(header == null || !header.startsWith(JwtProperties.TOKEN_PREFIX)) {
             // 문제가 있는 경우 다시 필터를 타게 내버려 두고
@@ -44,6 +41,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter{
             // 리턴 때린다
             return;
         }
+        System.out.println("header : " + header);
         // 그러면 이 아래쪽이 진행 안될것
 
         // 2. 헤더 값이 Authorization이면 Bearer로 replace 해 준다.
@@ -59,7 +57,7 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter{
 
         // 서명이 정상적으로 확인되어 username안에 값이 들어오면
         if(username != null) {
-            JwtUser user = userRepository.findByUsername(username);
+            Users user = userRepository.findByUsername(username);
 
             // 인증은 토큰 검증시 끝. 인증을 하기 위해서가 아닌 스프링 시큐리티가 수행해주는 권한 처리를 위해
             // 아래와 같이 토큰을 만들어서 Authentication 객체를 강제로 만들고 그걸 세션에 저장!

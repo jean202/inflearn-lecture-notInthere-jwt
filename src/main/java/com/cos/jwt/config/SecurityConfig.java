@@ -1,27 +1,31 @@
 package com.cos.jwt.config;
 
 import com.cos.jwt.config.jwt.JwtAuthenticationFilter;
+import com.cos.jwt.config.jwt.JwtAuthorizationFilter;
 import com.cos.jwt.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 
 // IOC할 수 있게 만들기
 @Configuration
-// 해당 시큐리티를 활성화 시켜 주기
+// 시큐리티 활성화 시켜 주기 -> 기본 스프링 필터체인에 등록
 @EnableWebSecurity
 // DI 시켜주기
 @RequiredArgsConstructor
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
     private final UserRepository userRepository;
     private final CorsConfig corsConfig;
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         // 필터 실습을 위한 테스트 코드라 주석 처리 (근데 심지어 적용도 잘 안되었던것 같음 ㅠㅠ 스프링 버전 문제인지..)
 /*
@@ -30,9 +34,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(new MyFilter3(), BasicAuthenticationFilter.class); // 그런데 필터 걸 때에는 이렇게 시큐리티필터에 굳이 걸어줄 필요 없고 따로 걸어줄 수도 있
 */
 
-        http
-            // 모든 요청이 이 필터를 타게 됨, 서버가 cors정책에서 벗어날 수 있게 된다 (크로스 오리진 요청이 와도 다 허용)
-            .addFilter(corsConfig.corsFilter())
+        return http
+            .csrf().disable()
             // session을 사용하지 않겠다, 무상태 스타일의 서버로 만들겠다(둘이 같은 말이라고 함)
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
@@ -41,18 +44,31 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .formLogin().disable()
             // 기본적 http 연결 방식 안쓰겠다
             .httpBasic().disable()
+            .apply(new MyCustomDsl()) // 커스텀 필터 등록
+            .and()
+            .authorizeRequests(authorize -> authorize
+                // 해당 url 들로 들어오면 접근권한을 이러이러하게 주겠다
+                .antMatchers("/api/v2/user/**")
+                .access("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
+                .antMatchers("/api/v2/manager/**")
+                .access("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
+                .antMatchers("/api/v2/admin/**")
+                .access("hasRole('ROLE_ADMIN')")
+                // 다른 요청은 다 권한 없이 들어갈 수 있게 설정
+                .anyRequest().permitAll())
+            .build();
+    }
+
+    public class MyCustomDsl extends AbstractHttpConfigurer<MyCustomDsl, HttpSecurity> {
+        @Override
+        public void configure(HttpSecurity http) throws Exception{
             // 달아주면 반드시 전달해 줘야 하는 파라미터가 있다 : AuthenticationManager(이 녀석을 통해서 로그인을 진행하기 때문에)
-            .addFilter(new JwtAuthenticationFilter(authenticationManager()))
-            .addFilter(new JwtAuthorizationFilter(authenticationManager(), userRepository))
-            .authorizeRequests()
-            // 해당 url 들로 들어오면 접근권한을 이러이러하게 주겠다
-            .antMatchers("/api/v1/user/**")
-            .access("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
-            .antMatchers("/api/v1/manager/**")
-            .access("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
-            .antMatchers("/api/v1/admin/**")
-            .access("hasRole('ROLE_ADMIN')")
-            // 다른 요청은 다 권한 없이 들어갈 수 있게 설정
-            .anyRequest().permitAll();
+            AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+            http
+                // 모든 요청이 이 필터를 타게 됨, 서버가 cors정책에서 벗어날 수 있게 된다 (크로스 오리진 요청이 와도 다 허용)
+                .addFilter(corsConfig.corsFilter())
+                .addFilter(new JwtAuthenticationFilter(authenticationManager))
+                .addFilter(new JwtAuthorizationFilter(authenticationManager, userRepository));
+        }
     }
 }

@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @NoArgsConstructor
-public class JwtUser {
+public class Users {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // AUTO?

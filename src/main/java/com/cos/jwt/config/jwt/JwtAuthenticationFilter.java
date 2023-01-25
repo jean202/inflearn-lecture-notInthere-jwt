@@ -3,7 +3,7 @@ package com.cos.jwt.config.jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.cos.jwt.config.auth.PrincipalDetails;
-import com.cos.jwt.model.JwtUser;
+import com.cos.jwt.dto.LoginRequestDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Date;
@@ -26,6 +26,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private final AuthenticationManager authenticationManager;
 
+    // Authentication 객체 만들어서 리턴 => 의존 : AuthenticationManager
+    // 인증 요청시에 실행되는 함수 => /login
     // login요청을 하면 로그인 시도를 위해 실행되는 함수
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
@@ -42,41 +44,54 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         // 4. PrincipalDetails를 세션에 담기
         // 5. JWT토큰을 만들어서 응답해준다
 
-        // 1.
-        try {                 // 이 byte안에 username과 password가 담겨있다
-            System.out.println(request.getInputStream().toString());
-            ObjectMapper mapper = new ObjectMapper();
-            JwtUser user = mapper.readValue(request.getInputStream(), JwtUser.class);
+        ObjectMapper mapper = new ObjectMapper();
+        LoginRequestDto loginRequestDto = null;
 
-            // formLogin방식이 아니기 때문에 직접 토큰을 만들어 준다
-            UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
-
-            // password는 spring security가 알아서 처리해 주고, username만 체크하면 된다?
-
-            // 2. 3.
-            // 이 코드가 실행되면 PrincipalDetailsService의 loadUserByUsername() 함수가 실행됨
-            // : authentication에 내 로그인한 정보가 담기게 된다
-            // DB에 있는 username, password와 일치하는지 확인
-            Authentication authentication = authenticationManager.authenticate(authenticationToken);
-
-            // 값이 있으면 로그인 정상적으로 되었다는 뜻
-            PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
-            System.out.println(principalDetails.getUser().getUsername());
-
-            // 4.
-            // authentication객체를 session영역에 저장 => 로그인이 되었다는 뜻
-            // 굳이 jwt 토큰을 사용하면서 세션을 만들 이유가 없으나 권한 처리를 해야 해서 세션에 넣어준다
-            // 리턴만 해주면 권한 관리를 security가 대신 해준다
-
-            // 5.
-            // 그런데, 여기서 굳이 JWT토큰을 만들지 않아도 된다
-            // ->
-            return authentication;
-
+        try {
+            // 이 byte안에 username과 password가 담겨있다 // 1.
+            loginRequestDto = mapper.readValue(request.getInputStream(), LoginRequestDto.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        System.out.println("JwtAuthenticationFilter : " + loginRequestDto);
+        // formLogin방식이 아니기 때문에 직접 토큰을 만들어 준다
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(loginRequestDto.getUsername(), loginRequestDto.getPassword());
+
+        System.out.println("JwtAuthenticationFilter.attemptAuthentication : 토큰 생성 완료");
+
+        // password는 spring security가 알아서 처리해 주고, username만 체크하면 된다?
+
+        // 2. 3.
+        // 이 코드가 실행되면 PrincipalDetailsService의 loadUserByUsername() 함수가 실행됨
+        // : authentication에 내 로그인한 정보가 담기게 된다
+        // DB에 있는 username, password와 일치하는지 확인
+
+        // authenticate() 함수가 호출 되면 인증 프로바이더가 유저 디테일 서비스의
+        // loadUserByUsername(토큰의 첫번째 파라메터) 를 호출하고
+        // UserDetails를 리턴받아서 토큰의 두번째 파라메터(credential)과
+        // UserDetails(DB값)의 getPassword()함수로 비교해서 동일하면
+        // Authentication 객체를 만들어서 필터체인으로 리턴해준다.
+
+        // Tip: 인증 프로바이더의 디폴트 서비스는 UserDetailsService 타입
+        // Tip: 인증 프로바이더의 디폴트 암호화 방식은 BCryptPasswordEncoder
+        // 결론은 인증 프로바이더에게 알려줄 필요가 없음.
+        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+
+        // 값이 있으면 로그인 정상적으로 되었다는 뜻
+        PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
+        System.out.println("Authentication : " + principalDetails.getUser().getUsername());
+
+        // 4.
+        // authentication객체를 session영역에 저장 => 로그인이 되었다는 뜻
+        // 굳이 jwt 토큰을 사용하면서 세션을 만들 이유가 없으나 권한 처리를 해야 해서 세션에 넣어준다
+        // 리턴만 해주면 권한 관리를 security가 대신 해준다
+
+        // 5.
+        // 그런데, 여기서 굳이 JWT토큰을 만들지 않아도 된다
+        // ->
+        return authentication;
 //        return null; 강사님은 이거 해주라 했는데, 빨간줄 에러남
     }
 
@@ -85,6 +100,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
         Authentication authResult) throws IOException, ServletException {
+
         System.out.println("JwtAuthenticationFilter.successfulAuthentication : 인증은 완료되었다는 뜻");
 
         PrincipalDetails principalDetails = (PrincipalDetails) authResult.getPrincipal();
@@ -102,5 +118,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             .sign(Algorithm.HMAC512(JwtProperties.SECRET));
 
         // 사용자에게 응답할 response 헤더에 Bearer값으로 내려줌
+        response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX + jwtToken);
     }
 }

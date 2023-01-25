@@ -44,3 +44,63 @@ Accept: application/json
 ### admin api
 GET localhost:8080/api/v1/admin
 Accept: application/json
+
+### V2 ###
+### home api
+GET http://localhost:8080/api/v2/home
+Accept: text/plain
+
+### joinUser api
+POST http://localhost:8080/api/v2/joinUser
+#Accept: application/json
+Content-Type: application/json
+
+{
+  "username": "user",
+  "password": "1234"
+}
+
+### joinManager api
+POST http://localhost:8080/api/v2/joinManager
+Accept: */*
+Content-Type: application/json
+
+{
+  "username": "testManager",
+  "password": "1234"
+}
+
+### joinAdmin api
+POST http://localhost:8080/api/v2/joinAdmin
+Accept: */*
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "1234"
+}
+
+### login api
+POST localhost:8080/login
+Accept: application/json
+Content-Type: application/json
+
+{
+  "username" : "admin",
+  "password" : "1234"
+}
+
+### user api
+GET localhost:8080/api/v2/user
+#Accept: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJqZWFuIiwiaWQiOjEsImV4cCI6MTY3NDY1NjgwOCwidXNlcm5hbWUiOiJqZWFuIn0.WWPmwZHEqQ1Wv30NAi6GYDms9Cag4N4ZFLwULEmud0YAem_aFS2rXCWP1UvTa-FVEkINCQWdpTBZ7Lq6ZAD_Vg
+
+### manager api
+GET localhost:8080/api/v2/manager/reports
+Accept: */*
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJtYW5hZ2VyIiwiaWQiOjIsImV4cCI6MTY3NDY1NzA2MiwidXNlcm5hbWUiOiJtYW5hZ2VyIn0.e6BcXx2NQOCNY1136JK5uLV3l6gaheug7AVYanQ18fLdoCje7rF6MnbuxgwrZVfDGYNSXONtw_wXdHN85ojVYQ
+
+### admin api
+GET localhost:8080/api/v2/admin/users
+Accept: */*
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImlkIjozLCJleHAiOjE2NzQ2NTcxOTAsInVzZXJuYW1lIjoiYWRtaW4ifQ.WH188PO2mymkTblmt9mu7aBu4pkZ-EZEMeLU1VbWPSYkHPvgbC379klV19JnI1sgDhLzKqZFE1ChUo9vXjGWmg
